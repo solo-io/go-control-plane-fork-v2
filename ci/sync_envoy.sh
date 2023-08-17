@@ -6,8 +6,8 @@ MIRROR_MSG="Mirrored from envoyproxy/envoy"
 SRCS=(envoy contrib)
 GO_TARGETS=(@envoy_api//...)
 IMPORT_BASE="github.com/envoyproxy/go-control-plane"
-COMMITTER_NAME="update-envoy[bot]"
-COMMITTER_EMAIL="135279899+update-envoy[bot]@users.noreply.github.com"
+# COMMITTER_NAME="update-envoy[bot]"
+# COMMITTER_EMAIL="135279899+update-envoy[bot]@users.noreply.github.com"
 ENVOY_SRC_DIR="${ENVOY_SRC_DIR:-}"
 
 
@@ -67,7 +67,7 @@ commit_changes () {
     git config user.name "$COMMITTER_NAME"
     git add envoy contrib
     git commit --allow-empty -s -m "${MIRROR_MSG} @ ${latest_commit}"
-    git push origin main
+    # git push origin main
 }
 
 

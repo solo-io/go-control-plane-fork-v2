@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.30.0
 // 	protoc        v4.23.4
-// source: envoy/service/ext_proc/v3/external_processor.proto
+// source: envoy-fork/service/ext_proc/v3/external_processor.proto
 
 package ext_procv3
 

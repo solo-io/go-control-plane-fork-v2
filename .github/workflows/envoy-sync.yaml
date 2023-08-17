@@ -31,7 +31,7 @@ jobs:
     - name: 'Checkout Repository'
       uses: actions/checkout@v3
       with:
-        ref: main
+        ref: fork/ext-proc
         fetch-depth: 0
         token: ${{ steps.appauth.outputs.token }}
 
@@ -39,8 +39,8 @@ jobs:
     - name: 'Checkout Repository'
       uses: actions/checkout@v3
       with:
-        repository: envoyproxy/envoy
-        ref: main
+        repository: envoyproxy/envoy-fork
+        ref: backports/v1.26.x/ext-proc-metadata-attributes
         fetch-depth: 0
         path: upstream
 
