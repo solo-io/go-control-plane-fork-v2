@@ -33,7 +33,7 @@ jobs:
       with:
         ref: fork/ext-proc
         fetch-depth: 0
-        token: ${{ steps.appauth.outputs.token }}
+        # token: ${{ steps.appauth.outputs.token }}
 
     # Checkout the Envoy repo
     - name: 'Checkout Repository'
