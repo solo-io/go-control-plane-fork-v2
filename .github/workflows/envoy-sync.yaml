@@ -31,7 +31,7 @@ jobs:
     - name: 'Checkout Repository'
       uses: actions/checkout@v3
       with:
-        ref: fork/ext-proc
+        ref: v0.11.1/forked-extproc
         fetch-depth: 0
         # token: ${{ steps.appauth.outputs.token }}
 
