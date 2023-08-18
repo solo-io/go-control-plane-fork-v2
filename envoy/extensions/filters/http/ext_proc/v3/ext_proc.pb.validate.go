@@ -285,6 +285,8 @@ func (m *ExternalProcessor) validate(all bool) error {
 
 	// no validation rules for AllowModeOverride
 
+	// no validation rules for DisableImmediateResponse
+
 	if len(errors) > 0 {
 		return ExternalProcessorMultiError(errors)
 	}
@@ -410,6 +412,35 @@ func (m *HeaderForwardingRules) validate(all bool) error {
 		if err := v.Validate(); err != nil {
 			return HeaderForwardingRulesValidationError{
 				field:  "AllowedHeaders",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetDisallowedHeaders()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, HeaderForwardingRulesValidationError{
+					field:  "DisallowedHeaders",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, HeaderForwardingRulesValidationError{
+					field:  "DisallowedHeaders",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDisallowedHeaders()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HeaderForwardingRulesValidationError{
+				field:  "DisallowedHeaders",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
