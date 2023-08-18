@@ -6,8 +6,8 @@ MIRROR_MSG="Mirrored from ?/envoy"
 SRCS=(envoy contrib)
 GO_TARGETS=(@envoy_api//...)
 IMPORT_BASE="github.com/envoyproxy/go-control-plane"
-COMMITTER_NAME="forked-update-envoy[bot]"
-# COMMITTER_EMAIL="135279899+update-envoy[bot]@users.noreply.github.com"
+COMMITTER_NAME="forked-soloio-bot"
+COMMITTER_EMAIL="soloio-bot@github.com"
 ENVOY_SRC_DIR="${ENVOY_SRC_DIR:-}"
 
 
@@ -63,11 +63,11 @@ commit_changes () {
     latest_commit="$(git -C "${ENVOY_SRC_DIR}" rev-list HEAD -n1)"
     echo "Latest commit: ${latest_commit}"
     echo "$latest_commit" > envoy/COMMIT
-    # git config user.email "$COMMITTER_EMAIL"
+    git config user.email "$COMMITTER_EMAIL"
     git config user.name "$COMMITTER_NAME"
     git add envoy contrib
     git commit --allow-empty -s -m "${MIRROR_MSG} @ ${latest_commit}"
-    # git push origin main
+    git push origin v0.11.1/forked-extproc
 }
 
 
