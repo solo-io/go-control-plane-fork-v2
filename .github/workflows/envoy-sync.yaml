@@ -39,7 +39,7 @@ jobs:
     - name: 'Checkout Repository'
       uses: actions/checkout@v3
       with:
-        repository: envoyproxy/envoy-fork
+        repository: solo-io/envoy-fork
         ref: backports/v1.26.x/ext-proc-metadata-attributes
         fetch-depth: 0
         path: upstream
