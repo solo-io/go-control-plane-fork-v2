@@ -65,7 +65,8 @@ commit_changes () {
     echo "$latest_commit" > envoy/COMMIT
     git config user.email "$COMMITTER_EMAIL"
     git config user.name "$COMMITTER_NAME"
-    git add envoy contrib
+    echo "Committing as user ${COMMITER_EMAIL} <${COMMITTER_NAME}>"
+    # git add envoy contrib
     git commit --allow-empty -s -m "${MIRROR_MSG} @ ${latest_commit}"
     git push origin v0.11.1/forked-extproc
 }
