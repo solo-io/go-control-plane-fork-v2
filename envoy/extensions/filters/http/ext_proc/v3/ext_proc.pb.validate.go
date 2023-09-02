@@ -130,32 +130,34 @@ func (m *ExternalProcessor) validate(all bool) error {
 
 	// no validation rules for AsyncMode
 
-	if all {
-		switch v := interface{}(m.GetMessageTimeout()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ExternalProcessorValidationError{
-					field:  "MessageTimeout",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, ExternalProcessorValidationError{
-					field:  "MessageTimeout",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetMessageTimeout()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return ExternalProcessorValidationError{
+	if d := m.GetMessageTimeout(); d != nil {
+		dur, err := d.AsDuration(), d.CheckValid()
+		if err != nil {
+			err = ExternalProcessorValidationError{
 				field:  "MessageTimeout",
-				reason: "embedded message failed validation",
+				reason: "value is not a valid duration",
 				cause:  err,
 			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+
+			lte := time.Duration(3600*time.Second + 0*time.Nanosecond)
+			gte := time.Duration(0*time.Second + 0*time.Nanosecond)
+
+			if dur < gte || dur > lte {
+				err := ExternalProcessorValidationError{
+					field:  "MessageTimeout",
+					reason: "value must be inside range [0s, 1h0m0s]",
+				}
+				if !all {
+					return err
+				}
+				errors = append(errors, err)
+			}
+
 		}
 	}
 
@@ -190,12 +192,45 @@ func (m *ExternalProcessor) validate(all bool) error {
 		}
 	}
 
+	if d := m.GetMaxMessageTimeout(); d != nil {
+		dur, err := d.AsDuration(), d.CheckValid()
+		if err != nil {
+			err = ExternalProcessorValidationError{
+				field:  "MaxMessageTimeout",
+				reason: "value is not a valid duration",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+
+			lte := time.Duration(3600*time.Second + 0*time.Nanosecond)
+			gte := time.Duration(0*time.Second + 0*time.Nanosecond)
+
+			if dur < gte || dur > lte {
+				err := ExternalProcessorValidationError{
+					field:  "MaxMessageTimeout",
+					reason: "value must be inside range [0s, 1h0m0s]",
+				}
+				if !all {
+					return err
+				}
+				errors = append(errors, err)
+			}
+
+		}
+	}
+
+	// no validation rules for DisableClearRouteCache
+
 	if all {
-		switch v := interface{}(m.GetMaxMessageTimeout()).(type) {
+		switch v := interface{}(m.GetForwardRules()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, ExternalProcessorValidationError{
-					field:  "MaxMessageTimeout",
+					field:  "ForwardRules",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -203,16 +238,16 @@ func (m *ExternalProcessor) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, ExternalProcessorValidationError{
-					field:  "MaxMessageTimeout",
+					field:  "ForwardRules",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetMaxMessageTimeout()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetForwardRules()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ExternalProcessorValidationError{
-				field:  "MaxMessageTimeout",
+				field:  "ForwardRules",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -220,11 +255,11 @@ func (m *ExternalProcessor) validate(all bool) error {
 	}
 
 	if all {
-		switch v := interface{}(m.GetMetadataOptions()).(type) {
+		switch v := interface{}(m.GetFilterMetadata()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, ExternalProcessorValidationError{
-					field:  "MetadataOptions",
+					field:  "FilterMetadata",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -232,21 +267,23 @@ func (m *ExternalProcessor) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, ExternalProcessorValidationError{
-					field:  "MetadataOptions",
+					field:  "FilterMetadata",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetMetadataOptions()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetFilterMetadata()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ExternalProcessorValidationError{
-				field:  "MetadataOptions",
+				field:  "FilterMetadata",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
 		}
 	}
+
+	// no validation rules for AllowModeOverride
 
 	if len(errors) > 0 {
 		return ExternalProcessorMultiError(errors)
@@ -328,22 +365,22 @@ var _ interface {
 	ErrorName() string
 } = ExternalProcessorValidationError{}
 
-// Validate checks the field values on MetadataOptions with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// first error encountered is returned, or nil if there are no violations.
-func (m *MetadataOptions) Validate() error {
+// Validate checks the field values on HeaderForwardingRules with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *HeaderForwardingRules) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on MetadataOptions with the rules
+// ValidateAll checks the field values on HeaderForwardingRules with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// MetadataOptionsMultiError, or nil if none found.
-func (m *MetadataOptions) ValidateAll() error {
+// HeaderForwardingRulesMultiError, or nil if none found.
+func (m *HeaderForwardingRules) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *MetadataOptions) validate(all bool) error {
+func (m *HeaderForwardingRules) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -351,28 +388,28 @@ func (m *MetadataOptions) validate(all bool) error {
 	var errors []error
 
 	if all {
-		switch v := interface{}(m.GetForwardingNamespaces()).(type) {
+		switch v := interface{}(m.GetAllowedHeaders()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, MetadataOptionsValidationError{
-					field:  "ForwardingNamespaces",
+				errors = append(errors, HeaderForwardingRulesValidationError{
+					field:  "AllowedHeaders",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, MetadataOptionsValidationError{
-					field:  "ForwardingNamespaces",
+				errors = append(errors, HeaderForwardingRulesValidationError{
+					field:  "AllowedHeaders",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetForwardingNamespaces()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetAllowedHeaders()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return MetadataOptionsValidationError{
-				field:  "ForwardingNamespaces",
+			return HeaderForwardingRulesValidationError{
+				field:  "AllowedHeaders",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -380,28 +417,28 @@ func (m *MetadataOptions) validate(all bool) error {
 	}
 
 	if all {
-		switch v := interface{}(m.GetReceivingNamespaces()).(type) {
+		switch v := interface{}(m.GetDisallowedHeaders()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, MetadataOptionsValidationError{
-					field:  "ReceivingNamespaces",
+				errors = append(errors, HeaderForwardingRulesValidationError{
+					field:  "DisallowedHeaders",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, MetadataOptionsValidationError{
-					field:  "ReceivingNamespaces",
+				errors = append(errors, HeaderForwardingRulesValidationError{
+					field:  "DisallowedHeaders",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetReceivingNamespaces()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetDisallowedHeaders()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return MetadataOptionsValidationError{
-				field:  "ReceivingNamespaces",
+			return HeaderForwardingRulesValidationError{
+				field:  "DisallowedHeaders",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -409,19 +446,19 @@ func (m *MetadataOptions) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return MetadataOptionsMultiError(errors)
+		return HeaderForwardingRulesMultiError(errors)
 	}
 
 	return nil
 }
 
-// MetadataOptionsMultiError is an error wrapping multiple validation errors
-// returned by MetadataOptions.ValidateAll() if the designated constraints
-// aren't met.
-type MetadataOptionsMultiError []error
+// HeaderForwardingRulesMultiError is an error wrapping multiple validation
+// errors returned by HeaderForwardingRules.ValidateAll() if the designated
+// constraints aren't met.
+type HeaderForwardingRulesMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m MetadataOptionsMultiError) Error() string {
+func (m HeaderForwardingRulesMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -430,11 +467,11 @@ func (m MetadataOptionsMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m MetadataOptionsMultiError) AllErrors() []error { return m }
+func (m HeaderForwardingRulesMultiError) AllErrors() []error { return m }
 
-// MetadataOptionsValidationError is the validation error returned by
-// MetadataOptions.Validate if the designated constraints aren't met.
-type MetadataOptionsValidationError struct {
+// HeaderForwardingRulesValidationError is the validation error returned by
+// HeaderForwardingRules.Validate if the designated constraints aren't met.
+type HeaderForwardingRulesValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -442,22 +479,24 @@ type MetadataOptionsValidationError struct {
 }
 
 // Field function returns field value.
-func (e MetadataOptionsValidationError) Field() string { return e.field }
+func (e HeaderForwardingRulesValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e MetadataOptionsValidationError) Reason() string { return e.reason }
+func (e HeaderForwardingRulesValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e MetadataOptionsValidationError) Cause() error { return e.cause }
+func (e HeaderForwardingRulesValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e MetadataOptionsValidationError) Key() bool { return e.key }
+func (e HeaderForwardingRulesValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e MetadataOptionsValidationError) ErrorName() string { return "MetadataOptionsValidationError" }
+func (e HeaderForwardingRulesValidationError) ErrorName() string {
+	return "HeaderForwardingRulesValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e MetadataOptionsValidationError) Error() string {
+func (e HeaderForwardingRulesValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -469,14 +508,14 @@ func (e MetadataOptionsValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sMetadataOptions.%s: %s%s",
+		"invalid %sHeaderForwardingRules.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = MetadataOptionsValidationError{}
+var _ error = HeaderForwardingRulesValidationError{}
 
 var _ interface {
 	Field() string
@@ -484,7 +523,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = MetadataOptionsValidationError{}
+} = HeaderForwardingRulesValidationError{}
 
 // Validate checks the field values on ExtProcPerRoute with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -750,35 +789,6 @@ func (m *ExtProcOverrides) validate(all bool) error {
 		}
 	}
 
-	if all {
-		switch v := interface{}(m.GetMetadataOptions()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ExtProcOverridesValidationError{
-					field:  "MetadataOptions",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, ExtProcOverridesValidationError{
-					field:  "MetadataOptions",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetMetadataOptions()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return ExtProcOverridesValidationError{
-				field:  "MetadataOptions",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
 	if len(errors) > 0 {
 		return ExtProcOverridesMultiError(errors)
 	}
@@ -856,108 +866,3 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ExtProcOverridesValidationError{}
-
-// Validate checks the field values on MetadataOptions_MetadataNamespaces with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the first error encountered is returned, or nil if there are
-// no violations.
-func (m *MetadataOptions_MetadataNamespaces) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on MetadataOptions_MetadataNamespaces
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the result is a list of violation errors wrapped in
-// MetadataOptions_MetadataNamespacesMultiError, or nil if none found.
-func (m *MetadataOptions_MetadataNamespaces) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *MetadataOptions_MetadataNamespaces) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if len(errors) > 0 {
-		return MetadataOptions_MetadataNamespacesMultiError(errors)
-	}
-
-	return nil
-}
-
-// MetadataOptions_MetadataNamespacesMultiError is an error wrapping multiple
-// validation errors returned by
-// MetadataOptions_MetadataNamespaces.ValidateAll() if the designated
-// constraints aren't met.
-type MetadataOptions_MetadataNamespacesMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m MetadataOptions_MetadataNamespacesMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m MetadataOptions_MetadataNamespacesMultiError) AllErrors() []error { return m }
-
-// MetadataOptions_MetadataNamespacesValidationError is the validation error
-// returned by MetadataOptions_MetadataNamespaces.Validate if the designated
-// constraints aren't met.
-type MetadataOptions_MetadataNamespacesValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e MetadataOptions_MetadataNamespacesValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e MetadataOptions_MetadataNamespacesValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e MetadataOptions_MetadataNamespacesValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e MetadataOptions_MetadataNamespacesValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e MetadataOptions_MetadataNamespacesValidationError) ErrorName() string {
-	return "MetadataOptions_MetadataNamespacesValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e MetadataOptions_MetadataNamespacesValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sMetadataOptions_MetadataNamespaces.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = MetadataOptions_MetadataNamespacesValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = MetadataOptions_MetadataNamespacesValidationError{}
